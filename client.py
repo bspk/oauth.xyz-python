@@ -8,6 +8,7 @@ import http.client
 import time
 import hashlib
 import base64
+import re
 
 handler = urllib.request.HTTPHandler(debuglevel=10)
 opener = urllib.request.build_opener(handler)
@@ -72,15 +73,13 @@ def requestSigned(url, body, at=None):
         m = hashlib.sha256()
         m.update(at.encode('utf-8'))
         h = m.digest()
-        jwsHeader['at_hash'] = base64.urlsafe_b64encode(h[0:int(m.digest_size / 2)]).decode('utf-8')
+        jwsHeader['at_hash'] = base64.urlsafe_b64encode(h[0:int(m.digest_size / 2)]).decode('utf-8').replace('=', '')
 
     print(jwsHeader)
     
     signed = jose.jws.sign(body, keypair, headers=jwsHeader, algorithm=keypair['alg'], unencoded=True)
     
-    parts = signed.split('.')
-    
-    detached = '..'.join((parts[0], parts[2]))
+    detached = re.sub('(^[^\.]+.).+(\.[^\.]+$)', '\\1\\2', signed) # safely cut out the payload
     
     print(detached)
     
