@@ -52,8 +52,9 @@ request = {
         ]
     },
     "interact": {
-        "redirect": True,
-        "user_code": True
+        "start": [
+            "redirect", "user_code"
+        ]
     }
 }
 
@@ -79,7 +80,9 @@ def requestSigned(url, body, at=None):
     
     signed = jose.jws.sign(body, keypair, headers=jwsHeader, algorithm=keypair['alg'], unencoded=True)
     
-    detached = re.sub('(^[^\.]+.).+(\.[^\.]+$)', '\\1\\2', signed) # safely cut out the payload
+    print(signed)
+    
+    detached = re.sub('(^[^\.]+.).*(\.[^\.]+$)', '\\1\\2', signed) # safely cut out the payload
     
     print(detached)
     
@@ -133,6 +136,7 @@ t = json.loads(response)
 printResponse(t)
 
 cont = t['continue']
+at = (t['access_token'] if 'access_token' in t else None)
 
 while cont:
     print()
@@ -144,6 +148,8 @@ while cont:
     t = json.loads(response)
 
     printResponse(t)
+
+    at = (t['access_token'] if 'access_token' in t else None)
 
     cont = t['continue']
 
